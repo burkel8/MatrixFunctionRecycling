@@ -43,22 +43,13 @@ z2 = @(zx) (zx*UTU - UTC)\(zx*UTV-UTVp1H);
 
 delta_theta = 2*pi / num_quad;
 const = (1i*r*delta_theta)/(2*pi*1i);
-[n,~] = size(V);
+
 for j = 1:num_quad
 
 
   theta = (j-1)*delta_theta;
   z = r*exp(1i*theta) + circle_centre;
   
-   % mat =  z*speye(m) - H(1:m,1:m) ...
-   %        - z*(z*VTU - VTC)*((z*UTU - UTC)\UTV)...
-   %        +(z*VTU - VTC)*((z*UTU - UTC)\UTVp1H);
-
-   % proj = eye(n) - (z*U - C)*((z*U'*U - U'*C)\U');
-   % rank(V(:,1:m))
-   % rank(proj'*V(:,1:m))
-
-
   common_factor = f_scalar(z)*exp(1i*theta);
   yterm = y(z);
   term1 = term1 + common_factor*yterm;
@@ -69,17 +60,5 @@ for j = 1:num_quad
 end
 
 deflated_approx = const*V(:,1:m)*term1 + const*U*term2 - const*U*term3;
-
-% for j = 1:num_quad
-% 
-%      theta = (j-1)*delta_theta;
-%      z = r*exp(1i*theta) + circle_centre;
-%      norm(b- (z*speye(n) - A)*deflated_approx)
-% 
-% 
-% end
-
-
-
 
 end

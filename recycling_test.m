@@ -1,9 +1,29 @@
-which_matrix = "smallLQCD";
-problem = "inverse";
-m = 40;
-k = 20;
-num_quad_points = 5000;
-num_systems = 10;
+%% Step 1: Choose parameters for program
+
+%%First choose the matrix possible options are
+%-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
+%-- A poisson matrix of size N*N x N*N (user specifies N) ("poisson")
+%-- A chemical potential matrix of size N*N x N*N (user specifies N) ("chemical_potantial")
+which_matrix = "smallLQCD";   
+
+%%Choose the function . Available options are
+% -- inverse function ("inverse")
+% -- Sign function ("sign")
+% -- log function ("log")
+% -- square root function ("sqrt")
+problem = 'inverse';
+
+
+%% Parameters of solve
+m = 50;  %Arnoldi cycle length
+k = 30;  %recycle space dimension
+N = 50;  %Parameter for Poisson and chemical potential matrix (value 
+         %does not matter for other matrices)
+num_quad_points = 5000;   %number of quadrature points (add as many differnt points to this list)
+matrix_eps = 0.0001;  %parameter to determine how much the matrix changes.
+num_systems = 15;
+%%%%%%%%%%%%%%    END USER INPUT HERE  %%%%%%%%%%%%%%%%%%%
+
 e1 = zeros(m,1);
 e1(1)=1;
 
@@ -12,51 +32,9 @@ err_quad_arnoldi = zeros(1,num_systems);
 err_rFOM = zeros(1,num_systems);
 err_rGMRES = zeros(1,num_systems);
 err_recycle_space = zeros(num_systems);
-% loading the system matrix
-if which_matrix=="large_sch"
-    load mat_schwinger128x128b3phasenum11000.mat;
-    n = size(S,1);
-    shift = 0.0;
-elseif which_matrix=="small_sch"
-    load Schw_16.mat
-    n = size(S,1);
-    S(:,n/2+1:n) = -S(:,n/2+1:n); % ---> do this for the 16^{2} Schwinger
-    shift = 0.0;
-elseif which_matrix == "smallLQCD"
-      load('smallLQCD_A1.mat')
-      S=A1;
-      shift = 0;
-      [n,~] = size(S); 
-elseif which_matrix == "poisson"
 
-N = 50;
-e = ones(N,1);
-A = (N+1)^2*gallery('poisson',N);
-n = N*N;
-s = eigs(A,1,'smallestabs');
-S = A;
-else
-   fprintf('ERR: no matrix chosen!');
-end
-
-%S = S + shift*speye(n);
-
-f1_scalar = @(zx) 1.0/zx;
-f1_matrix = @(Ax,bx) Ax\bx;
-
-f2_scalar = @(zx) 1.0/sqrt(zx);
-f2_matrix = @(Ax,bx) sqrtm(full(Ax))\bx;
-
-if problem =="inverse"
-    f_scalar = @(zx) f1_scalar(zx);
-    f_matrix = @(Ax,bx) f1_matrix(Ax,bx);
-elseif problem == "sign"
-    f_scalar = @(zx) f2_scalar(zx);
-    f_matrix = @(Ax,bx) f2_matrix(Ax,bx);
-else
-    error("ERROR : unknown function chosen!\n");
-end
-
+[f_scalar, f_matrix] = return_function(problem);
+[S,n] = return_matrix(which_matrix,N);
 
 b = rand(n,1);
 b = b/norm(b);
@@ -95,9 +73,6 @@ for ix=1:num_systems
     [rFOM_approx] = rFOM2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
     err_rFOM(ix) = norm(x - rFOM_approx);
 
-    [rGMRES_approx] = rGMRES2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
-    err_rGMRES(ix) = norm(x - rGMRES_approx);
-
     fprintf("\n... DONE\n");
 
        [U,D] = scale_cols_of_U(U,k);
@@ -122,7 +97,7 @@ err_recycle_space(ix) = eigs_res_norm;
 
     b = rand(n,1);
     b = b/norm(b);
-    %S = S + 0.0001*sprand(S);
+    S = S + matrix_eps*sprand(S);
     x = f_matrix(S,b);
     
 end
@@ -133,14 +108,12 @@ hold on;
 semilogy(xx,err_quad_arnoldi/norm(x) ,'-s');
 hold on;
 semilogy(xx,err_rFOM/norm(x),'-o');
-hold on;
-semilogy(xx,err_rGMRES/norm(x),'-o');
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - approximation accuracy vs number of quadrature nodes','interpreter','latex')
 xlabel('System number','interpreter','latex');
 ylabel('$\| f(A)b - x_{m} \|_{fro}$','interpreter','latex');
 grid on;
-legend('Arnoldi','Arnoldi via quadrature','rFOM$^{2}$','rGMRES$^{2}$','interpreter','latex');
+legend('Arnoldi','Arnoldi via quadrature','rFOM$^{2}$','interpreter','latex');
 xticks(xx);
 

@@ -1,37 +1,36 @@
-load("smallLQCD_A1.mat");
-A = A1;
-[n,~] = size(A);
-%A = A - 0.6*speye(n);
+%% Step 1: Choose parameters for program
+
+%%First choose the matrix possible options are
+%-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
+%-- A poisson matrix of size N*N x N*N (user specifies N) ("poisson")
+%-- A chemical potential matrix of size N*N x N*N (user specifies N) ("chemical_potantial")
+which_matrix = "smallLQCD";   
+
+%%Choose the function . Available options are
+% -- inverse function ("inverse")
+% -- Sign function ("sign")
+% -- log function ("log")
+% -- square root function ("sqrt")
+problem = 'sqrt';
+
+
+%% Parameters of solve
+m = 30;  %Arnoldi cycle length
+k = 20;  %recycle space dimension
+N = 30;  %Parameter for Poisson and chemical potential matrix (value 
+         %does not matter for other matrices)
+num_quad = [5000];   %number of quadrature points (add as many differnt points to this list)
+
+%%%%%%%%%%%%%%    END USER INPUT HERE  %%%%%%%%%%%%%%%%%%%
+
+[A,n] = return_matrix(which_matrix,N);
+[f_scalar, f_matrix] = return_function(problem);
 
 %% Define rhs
 b = rand(n,1);
 b = b/norm(b);
 
-
-%% Parameters of solve
-m = 40;
-k = 20;
-
-num_quad = [100,200,300,400,500,600];
 num_tests = size(num_quad,2);
-
-problem = 'inverse';
-
-f1_scalar = @(zx) 1.0/zx;
-f1_matrix = @(Ax,bx) Ax\bx;
-
-f2_scalar = @(zx) 1./sqrt(zx);
-f2_matrix = @(Ax,bx) sqrtm(full(Ax))\bx;
-
-if problem =="inverse"
-    f_scalar = @(zx) f1_scalar(zx);
-    f_matrix = @(Ax,bx) f1_matrix(Ax,bx);
-elseif problem == "sign"
-    f_scalar = @(zx) f2_scalar(zx);
-    f_matrix = @(Ax,bx) f2_matrix(Ax,bx);
-else
-    error("ERROR : unknown function chosen!\n");
-end
 
 %define exact
 exact = f_matrix(A,b);
@@ -77,12 +76,10 @@ hold on;
 semilogy(points,err_quad_arnoldi,'-o');
 hold on;
 semilogy(points,err_rFOM,'-s');
-hold on;
-semilogy(points, err_rGMRES,'-s');
 title(' approximation accuracy vs number of quadrature nodes','interpreter','latex')
 xlabel('number of quad nodes','interpreter','latex');
 ylabel('$\| f(A)b - x_{m} \|_{fro}$','interpreter','latex');
 grid on;
-legend('Arnoldi','Arnoldi quad','rFOM','rGMRES');
+legend('Arnoldi','Arnoldi quad','rFOM');
 xticks(points)
 
