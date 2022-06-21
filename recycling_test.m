@@ -16,12 +16,17 @@ problem = 'sign';
 
 %% Parameters of solve
 m = 50;  %Arnoldi cycle length
-k = 10;  %recycle space dimension
+k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
 num_quad_points = 2000;   %number of quadrature points (add as many differnt points to this list)
-matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
-num_systems = 1;
+matrix_eps = 0.01;  %parameter to determine how much the matrix changes.
+num_systems = 10;
+
+%Paramters for fontsize and line width in plots
+fontsize = 13;
+linewidth = 1;
+
 %%%%%%%%%%%%%%    END USER INPUT HERE  %%%%%%%%%%%%%%%%%%%
 
 e1 = zeros(m,1);
@@ -32,6 +37,7 @@ err_quad_arnoldi = zeros(1,num_systems);
 err_rFOM = zeros(1,num_systems);
 err_rGMRES = zeros(1,num_systems);
 err_recycle_space = zeros(1,num_systems);
+eigs_monitor = zeros(1,num_systems);
 
 [f_scalar, f_matrix] = return_function(problem);
 [S,n] = return_matrix(which_matrix,N);
@@ -58,6 +64,8 @@ fprintf("avg_res_norm = %f\n", eigs_res_norm);
 %% computing f(A)b
 
 for ix=1:num_systems
+
+    eigs_monitor(ix) = real(eigs(S,1,'smallestreal'));
 
     fprintf("\nSOLVING FOR SYSTEM # %d ... \n\n",ix);
     defl_subsp_tol = 1.0e-3;
@@ -103,17 +111,19 @@ err_recycle_space(ix) = eigs_res_norm;
 end
 
 xx=1:1:num_systems;
-semilogy(xx,err_arnoldi/norm(x) ,'-x');
+
+semilogy(xx,err_arnoldi/norm(x) ,'-x', 'LineWidth', 1);
 hold on;
-semilogy(xx,err_quad_arnoldi/norm(x) ,'-s');
+semilogy(xx,err_quad_arnoldi/norm(x) ,'-s', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM/norm(x),'-o');
+semilogy(xx,err_rFOM/norm(x),'-o', 'LineWidth',1);
 hold off;
 
-title('sign($\textbf{A}$)\textbf{b} - approximation error vs. problem index','interpreter','latex')
-xlabel('problem index','interpreter','latex');
-ylabel('$\| f(A)b - x_{m} \|_{fro}$','interpreter','latex');
+title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
+xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
+ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-legend('Arnoldi','Arnoldi via quadrature','rFOM$^{2}$','interpreter','latex');
+lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$','interpreter','latex');
+set(lgd,'FontSize',fontsize);
 xticks(xx);
 

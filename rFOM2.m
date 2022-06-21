@@ -1,7 +1,7 @@
 function [deflated_approx] = rFOM2(b,V,H,m,k,U,C,num_quad, f_scalar)
 
-s = eigs(H(1:m,1:m),1,'smallestabs');
-l = eigs(H(1:m,1:m),1,'largestabs');
+s = eigs(H(1:m,1:m),1,'smallestreal');
+l = eigs(H(1:m,1:m),1,'largestreal');
 sm_eig = s ;
 lg_eig = l;
 shift = 0;

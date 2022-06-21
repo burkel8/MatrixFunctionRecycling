@@ -1,8 +1,8 @@
 function [deflated_approx] = rGMRES2(b,V,H,m,k,U,C,num_quad,f_scalar)
 
  
-s = eigs(H(1:m,1:m),1,'smallestabs');
-l = eigs(H(1:m,1:m),1,'largestabs');
+s = eigs(H(1:m,1:m),1,'smallestreal');
+l = eigs(H(1:m,1:m),1,'largestreal');
 sm_eig = s ;
 lg_eig = l;
 shift = 0;
@@ -41,7 +41,7 @@ z2 = @(zx) (zx*CTU - CTC)\(zx*CTV - CTVpH);
 
 delta_theta = 2*pi / num_quad;
 const = (1i*r*delta_theta)/(2*pi*1i);
-[n,~] = size(V);
+
 for j = 1:num_quad
   theta = (j-1)*delta_theta;
   z = r*exp(1i*theta) + circle_centre;
@@ -51,11 +51,6 @@ for j = 1:num_quad
   term1 = term1 + common_factor*yterm;
   term2 = term2 + common_factor*z1(z);
   term3 = term3 + common_factor*z2(z)*yterm;
-
-
-%   proj = eye(n) - (z*U-C)*((z*C'*U - C'*C)\C');
-%   rank(V(:,1:m))
-%   rank(proj'*(V*H))
 
 end
 

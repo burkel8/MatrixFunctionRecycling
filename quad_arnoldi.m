@@ -2,8 +2,8 @@ function [standard_approx] = quad_arnoldi(b,V,H,m,num_quad, f_scalar)
 
 e1 = zeros(m,1); e1(1)=1;
 
-s = eigs(H(1:m,1:m),1,'smallestabs');
-l = eigs(H(1:m,1:m),1,'largestabs');
+s = eigs(H(1:m,1:m),1,'smallestreal');
+l = eigs(H(1:m,1:m),1,'largestreal');
 sm_eig = s ;
 lg_eig = l;
 shift = 0;
