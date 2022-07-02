@@ -15,7 +15,7 @@ problem = 'inverse';
 
 
 %% Parameters of solve
-m = 40;  %Arnoldi cycle length
+m = 50;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 80;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
@@ -52,7 +52,7 @@ err_arnoldi = zeros(1,num_tests);
 err_quad_arnoldi = zeros(1,num_tests);
 err_rFOM_v1 = zeros(1,num_tests);
 err_rFOM_v2 = zeros(1,num_tests);
-
+err_rFOM_v3 = zeros(1,num_tests);
 
 [H,V] = arnoldi( A, b , n,m, 1);
 
@@ -71,6 +71,10 @@ err_rFOM_v1(i) = norm(exact - rFOM_v1_approx);
 [rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad(i), f_scalar);
 err_rFOM_v2(i) = norm(exact - rFOM_v2_approx);
 
+
+[rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad(i), f_scalar, f_matrix);
+err_rFOM_v3(i) = norm(exact - rFOM_v3_approx);
+
 end
 
 x=1:1:num_tests;
@@ -81,13 +85,15 @@ semilogy(points,err_quad_arnoldi,'-o','LineWidth',1);
 hold on;
 semilogy(points,err_rFOM_v1,'-x','LineWidth',1);
 hold on;
-semilogy(points,err_rFOM_v2,'-s','LineWidth',1);
+semilogy(points,err_rFOM_v2,'--','LineWidth',1);
+hold on;
+semilogy(points,err_rFOM_v3,'-s','LineWidth',1);
 hold off;
 title(' approximation accuracy vs number of quadrature nodes','interpreter','latex','FontSize',fontsize)
 xlabel('number of quad nodes','interpreter','latex','FontSize',fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','Arnoldi quad','rFOM$^{2}$ (v1)','rFOM$^{2}$ (v2)','interpreter','latex');
+lgd = legend('Arnoldi','Arnoldi quad','rFOM$^{2}$ (v1)','rFOM$^{2}$ (v2)', 'rFOM$^{2}$ (v3)','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(points)
 

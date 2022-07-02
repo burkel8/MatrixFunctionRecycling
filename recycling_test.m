@@ -36,6 +36,7 @@ err_arnoldi = zeros(1,num_systems);
 err_quad_arnoldi = zeros(1,num_systems);
 err_rFOM_v1 = zeros(1,num_systems);
 err_rFOM_v2 = zeros(1,num_systems);
+err_rFOM_v3 = zeros(1,num_systems);
 err_recycle_space = zeros(1,num_systems);
 eigs_monitor = zeros(1,num_systems);
 
@@ -84,8 +85,10 @@ for ix=1:num_systems
     [rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
     err_rFOM_v2(ix) = norm(x - rFOM_v2_approx);
 
+    [rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad_points, f_scalar, f_matrix);
+    err_rFOM_v3(ix) = norm(x - rFOM_v3_approx);
 
-    fprintf("\n... DONE\n");
+   fprintf("\n... DONE\n");
 
         [U,D] = scale_cols_of_U(U,k);
          Vhat = [U V(:,1:m)];
@@ -116,20 +119,23 @@ end
 
 xx=1:1:num_systems;
 
-semilogy(xx,err_arnoldi/norm(x) ,'-x', 'LineWidth', 1);
+semilogy(xx,err_arnoldi/norm(x) ,'-v', 'LineWidth', 1.5);
 hold on;
-semilogy(xx,err_quad_arnoldi/norm(x) ,'-s', 'LineWidth',1);
+semilogy(xx,err_quad_arnoldi/norm(x) ,'--', 'LineWidth',1.5);
 hold on;
-semilogy(xx,err_rFOM_v1/norm(x),'-o', 'LineWidth',1);
+semilogy(xx,err_rFOM_v1/norm(x),'-o', 'LineWidth',1.5);
 hold on;
-semilogy(xx,err_rFOM_v2/norm(x),'-o', 'LineWidth',1);
+semilogy(xx,err_rFOM_v2/norm(x),'-x', 'LineWidth',1.5);
+hold on;
+semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1.5);
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$','rGFOM$^{2}$','interpreter','latex');
+lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$ (v1)','rFOM$^{2}$ (v2)','rFOM$^{2}$ (v3)','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(xx);
+
 
