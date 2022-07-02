@@ -11,16 +11,16 @@ which_matrix = "smallLQCD";
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'sign';
+problem = 'inverse';
 
 
 %% Parameters of solve
 m = 50;  %Arnoldi cycle length
-k = 20;  %recycle space dimension
+k = 10;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
 num_quad_points = 2000;   %number of quadrature points (add as many differnt points to this list)
-matrix_eps = 0.01;  %parameter to determine how much the matrix changes.
+matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
 num_systems = 10;
 
 %Paramters for fontsize and line width in plots
@@ -34,8 +34,8 @@ e1(1)=1;
 
 err_arnoldi = zeros(1,num_systems);
 err_quad_arnoldi = zeros(1,num_systems);
-err_rFOM = zeros(1,num_systems);
-err_rGMRES = zeros(1,num_systems);
+err_rFOM_v1 = zeros(1,num_systems);
+err_rFOM_v2 = zeros(1,num_systems);
 err_recycle_space = zeros(1,num_systems);
 eigs_monitor = zeros(1,num_systems);
 
@@ -78,18 +78,22 @@ for ix=1:num_systems
     quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad_points,f_scalar);
     err_quad_arnoldi(ix) = norm(x - quad_arnoldi_Approx);
 
-    [rFOM_approx] = rFOM2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
-    err_rFOM(ix) = norm(x - rFOM_approx);
+    [rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad_points, f_scalar);
+    err_rFOM_v1(ix) = norm(x - rFOM_v1_approx);
+
+    [rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
+    err_rFOM_v2(ix) = norm(x - rFOM_v2_approx);
+
 
     fprintf("\n... DONE\n");
 
-       [U,D] = scale_cols_of_U(U,k);
-        Vhat = [U V(:,1:m)];
-        What = [C V(:,1:m+1)];
-        G = zeros(m+1+k,m+k);
-        G(1:k,1:k) = D;
-      
-        G(k+1:m+1+k,k+1:m+k) = H;
+        [U,D] = scale_cols_of_U(U,k);
+         Vhat = [U V(:,1:m)];
+         What = [C V(:,1:m+1)];
+         G = zeros(m+1+k,m+k);
+         G(1:k,1:k) = D;
+         G(k+1:m+1+k,k+1:m+k) = H;
+        
         [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
         Y = Vhat*P;
         [Q,R]=qr(G*P,0);
@@ -116,14 +120,16 @@ semilogy(xx,err_arnoldi/norm(x) ,'-x', 'LineWidth', 1);
 hold on;
 semilogy(xx,err_quad_arnoldi/norm(x) ,'-s', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM/norm(x),'-o', 'LineWidth',1);
+semilogy(xx,err_rFOM_v1/norm(x),'-o', 'LineWidth',1);
+hold on;
+semilogy(xx,err_rFOM_v2/norm(x),'-o', 'LineWidth',1);
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$','interpreter','latex');
+lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$','rGFOM$^{2}$','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(xx);
 
