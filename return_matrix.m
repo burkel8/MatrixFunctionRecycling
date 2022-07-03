@@ -19,8 +19,8 @@ D1 = kron(I,D1) + kron(D1,I);
 A = D2 + 0*D1;
 S = A;
 [n,~]=size(S);
-else
-   fprintf('ERR: no matrix chosen!');
+else    
+    fprintf('ERR: no matrix chosen!');
 end
 
 end

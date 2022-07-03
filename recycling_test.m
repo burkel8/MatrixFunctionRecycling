@@ -16,10 +16,10 @@ problem = 'inverse';
 
 %% Parameters of solve
 m = 50;  %Arnoldi cycle length
-k = 10;  %recycle space dimension
+k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad_points = 2000;   %number of quadrature points (add as many differnt points to this list)
+num_quad_points = 5000;   %number of quadrature points (add as many differnt points to this list)
 matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
 num_systems = 10;
 
@@ -119,22 +119,22 @@ end
 
 xx=1:1:num_systems;
 
-semilogy(xx,err_arnoldi/norm(x) ,'-v', 'LineWidth', 1.5);
+semilogy(xx,err_arnoldi/norm(x) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
 hold on;
-semilogy(xx,err_quad_arnoldi/norm(x) ,'--', 'LineWidth',1.5);
+semilogy(xx,err_quad_arnoldi/norm(x) ,'-o', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM_v1/norm(x),'-o', 'LineWidth',1.5);
+semilogy(xx,err_rFOM_v1/norm(x),'-v', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM_v2/norm(x),'-x', 'LineWidth',1.5);
+semilogy(xx,err_rFOM_v2/norm(x),'-s', 'LineWidth',1,'MarkerSize', 8);
 hold on;
-semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1.5);
+semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1);
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$ (v1)','rFOM$^{2}$ (v2)','rFOM$^{2}$ (v3)','interpreter','latex');
+lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','rFOM$^{2}$ $\tilde{f}_{2}$','rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(xx);
 
