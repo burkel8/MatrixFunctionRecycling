@@ -11,7 +11,7 @@ which_matrix = "smallLQCD";
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'inverse';
+problem = 'sign';
 
 
 %% Parameters of solve
@@ -19,8 +19,8 @@ m = 50;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad_points = 5000;   %number of quadrature points (add as many differnt points to this list)
-matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
+num_quad_points = 10000;   %number of quadrature points (add as many differnt points to this list)
+matrix_eps = 0.001;  %parameter to determine how much the matrix changes.
 num_systems = 10;
 
 %Paramters for fontsize and line width in plots
@@ -41,7 +41,8 @@ err_recycle_space = zeros(1,num_systems);
 eigs_monitor = zeros(1,num_systems);
 
 [f_scalar, f_matrix] = return_function(problem);
-[S,n] = return_matrix(which_matrix,N);
+[S1,n] = return_matrix(which_matrix,N);
+S = S1;
 
 b = rand(n,1);
 b = b/norm(b);
@@ -98,22 +99,25 @@ for ix=1:num_systems
          G(k+1:m+1+k,k+1:m+k) = H;
         
         [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
-        Y = Vhat*P;
-        [Q,R]=qr(G*P,0);
-        C = What*Q;
-        U = Y/R;
+        U = Vhat*P;
 
 
- theta = (U'*U)\(U'*S*U);
-eigs_res_norm = norm(U*theta - S*U)/norm(U);
-fprintf("avg_res_norm = %f\n", eigs_res_norm);
-err_recycle_space(ix) = eigs_res_norm;
 
 
     b = rand(n,1);
     b = b/norm(b);
     S = S + matrix_eps*sprand(S);
     x = f_matrix(S,b);
+
+    %Maake U and C compaitable with new system
+    [Q,R]=qr(S*U,0);
+     C = Q;
+     U = U/R;
+
+      theta = (U'*U)\(U'*S1*U);
+eigs_res_norm = norm(U*theta - S1*U)/norm(U);
+fprintf("avg_res_norm = %f\n", eigs_res_norm);
+err_recycle_space(ix) = eigs_res_norm;
     
 end
 
