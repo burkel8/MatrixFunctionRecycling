@@ -11,7 +11,7 @@ which_matrix = "smallLQCD";
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'sign';
+problem = 'inverse';
 
 
 %% Parameters of solve
@@ -19,9 +19,9 @@ m = 50;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad_points = 10000;   %number of quadrature points (add as many differnt points to this list)
+num_quad_points = 1000;   %number of quadrature points (add as many differnt points to this list)
 matrix_eps = 0.001;  %parameter to determine how much the matrix changes.
-num_systems = 10;
+num_systems = 15;
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
@@ -41,25 +41,24 @@ err_recycle_space = zeros(1,num_systems);
 eigs_monitor = zeros(1,num_systems);
 
 [f_scalar, f_matrix] = return_function(problem);
-[S1,n] = return_matrix(which_matrix,N);
-S = S1;
+[A,n] = return_matrix(which_matrix,N);
 
 b = rand(n,1);
 b = b/norm(b);
-x = f_matrix(S,b);
+x = f_matrix(A,b);
 x0 = zeros(n,1);
 
 %% Run Arnoldi on a close matrix
-Sclose = S + 0.001*sprand(S);
+Aclose = A + 0.001*sprand(A);
 g = rand(n,1);
-[Hc,Vc] = arnoldi( Sclose, g , n,m, 1);
+[Hc,Vc] = arnoldi( Aclose, g , n,m, 1);
 [P] = harmonic_ritz(Hc,m,k);
 U = Vc(:,1:m)*P;
-C = S*U;
+C = A*U;
 
 
-theta = (U'*U)\(U'*S*U);
-eigs_res_norm = norm(U*theta - S*U)/norm(U);
+theta = (U'*U)\(U'*A*U);
+eigs_res_norm = norm(U*theta - A*U)/norm(U);
 fprintf("avg_res_norm = %f\n", eigs_res_norm);
 
 
@@ -67,11 +66,11 @@ fprintf("avg_res_norm = %f\n", eigs_res_norm);
 
 for ix=1:num_systems
 
-    eigs_monitor(ix) = real(eigs(S,1,'smallestreal'));
+    eigs_monitor(ix) = real(eigs(A,1,'smallestreal'));
 
     fprintf("\nSOLVING FOR SYSTEM # %d ... \n\n",ix);
     defl_subsp_tol = 1.0e-3;
-    [H,V] = arnoldi( S, b , n,m, 1);
+    [H,V] = arnoldi( A, b , n,m, 1);
   
      arnoldi_approx = norm(b)*V(:,1:m)*f_matrix(H(1:m,1:m),e1);
      err_arnoldi(ix) = norm(x - arnoldi_approx);
@@ -98,40 +97,35 @@ for ix=1:num_systems
          G(1:k,1:k) = D;
          G(k+1:m+1+k,k+1:m+k) = H;
         
-        [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
-        U = Vhat*P;
-
-
+       
 
 
     b = rand(n,1);
     b = b/norm(b);
-    S = S + matrix_eps*sprand(S);
-    x = f_matrix(S,b);
+    A = A + matrix_eps*sprand(A);
+    x = f_matrix(A,b);
 
-    %Maake U and C compaitable with new system
-    [Q,R]=qr(S*U,0);
-     C = Q;
-     U = U/R;
+    [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
+    U = Vhat*P;
+    [C,R] = qr(A*U,0);
+    U = U/R;
 
-      theta = (U'*U)\(U'*S1*U);
-eigs_res_norm = norm(U*theta - S1*U)/norm(U);
+      theta = (U'*U)\(U'*A*U);
+eigs_res_norm = norm(U*theta - A*U)/norm(U);
 fprintf("avg_res_norm = %f\n", eigs_res_norm);
 err_recycle_space(ix) = eigs_res_norm;
     
 end
 
-xx=1:1:num_systems;
-
-semilogy(xx,err_arnoldi/norm(x) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
+semilogy(err_arnoldi/norm(x) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
 hold on;
-semilogy(xx,err_quad_arnoldi/norm(x) ,'-o', 'LineWidth',1);
+semilogy(err_quad_arnoldi/norm(x) ,'-o', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM_v1/norm(x),'-v', 'LineWidth',1);
+semilogy(err_rFOM_v1/norm(x),'-v', 'LineWidth',1);
 hold on;
-semilogy(xx,err_rFOM_v2/norm(x),'-s', 'LineWidth',1,'MarkerSize', 8);
+semilogy(err_rFOM_v2/norm(x),'-s', 'LineWidth',1,'MarkerSize', 8);
 hold on;
-semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1);
+semilogy(err_rFOM_v3/norm(x),'-s', 'LineWidth',1);
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
@@ -140,6 +134,5 @@ ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','lat
 grid on;
 lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','rFOM$^{2}$ $\tilde{f}_{2}$','rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
 set(lgd,'FontSize',fontsize);
-xticks(xx);
 
 

@@ -6,7 +6,7 @@ A1 = A;
 
 
 m = 50;
-k = 20;
+k = 40;
 num_quad_points = 5000;
 num_systems = 5;
 
@@ -65,12 +65,12 @@ for ix=1:num_systems
     [rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad_points, f_scalar);
     err_rFOM_v1(ix) = norm(x - rFOM_v1_approx);
 
-   [rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
-   err_rFOM_v2(ix) = norm(x - rFOM_v2_approx);
+   %[rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
+   %err_rFOM_v2(ix) = norm(x - rFOM_v2_approx);
 
  
-   [rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad_points, f_scalar, f_matrix);
-   err_rFOM_v3(ix) = norm(x - rFOM_v3_approx);
+   %[rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad_points, f_scalar, f_matrix);
+   %err_rFOM_v3(ix) = norm(x - rFOM_v3_approx);
 
  
     fprintf("\n... DONE\n");
@@ -80,11 +80,8 @@ for ix=1:num_systems
         What = [C V(:,1:m+1)];
         G = zeros(m+1+k,m+k);
         G(1:k,1:k) = D;
-      
         G(k+1:m+1+k,k+1:m+k) = H;
-        [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
-        U = Vhat*P;
-     
+            
 
 
 
@@ -95,14 +92,14 @@ load(['data/LQCD_8to4_', num2str(ix), '.mat']);
 load(['data/rhs_sign_LQCD_8to4_', num2str(ix), '.mat']);
 end
  
-%Maake U and C compaitable with new system
-[Q,R]=qr(A*U,0);
-C = Q;
-U = U/R;
+  
 
- theta = (U'*U)\(U'*A1*U);
-eigs_res_norm = norm(U*theta - A1*U)/norm(U);
-fprintf("avg_res_norm = %f\n", eigs_res_norm);
+    [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
+    U = Vhat*P;
+    [C,R] = qr(A*U,0);
+    U = U/R;
+
+
 
 
 end
@@ -114,18 +111,19 @@ hold on;
 semilogy(xx,err_quad_arnoldi/norm(x) ,'-o', 'LineWidth',1);
 hold on;
 semilogy(xx,err_rFOM_v1/norm(x),'-v', 'LineWidth',1);
-hold on;
-semilogy(xx,err_rFOM_v2/norm(x),'-s', 'LineWidth',1,'MarkerSize', 8);
-hold on;
-semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1);
+%hold on;
+%semilogy(xx,err_rFOM_v2/norm(x),'-s', 'LineWidth',1,'MarkerSize', 8);
+%hold on;
+%semilogy(xx,err_rFOM_v3/norm(x),'-s', 'LineWidth',1);
 hold off;
 
 title('sign($\textbf{A}$)\textbf{b} - error vs. problem index','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \textbf{x}_{m} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','rFOM$^{2}$ $\tilde{f}_{2}$','rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
+%lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','rFOM$^{2}$ $\tilde{f}_{2}$','rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
 
+lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(xx);
 
