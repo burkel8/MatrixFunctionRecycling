@@ -3,8 +3,6 @@
 %% depend on the actual evaluation of f(A)b using our methods, so we do not include
 %% these computations in the code for speed.
 
-
-
 %% Step 1: Choose parameters for program
 
 %%First choose the matrix possible options are
@@ -26,7 +24,7 @@ m = 40;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad_points = 1;   %number of quadrature points (add as many differnt points to this list)
+num_quad_points = 1;   %This experiment does not depend on the number of quad points. Choose 1 for speed
 
 
 matrix_eps = [0.0, 0.0001, 0.001, 0.01];  %parameter to determine how much the matrix changes.
@@ -41,16 +39,13 @@ linewidth = 1;
 [num_eps] = size(matrix_eps,2);
 err_recycle_space = zeros(num_eps,num_systems);
 
-
-
-
-
-
-%% computing f(A)b
+%For each value of epsilon, approximate a sequence of f(A)b applications
+%and generate a new U for each problem using the previous problem. Store
+%the error of U as an eigenvector approximation for epsilon index i and
+%problem index j in the entry (i,j) of the matrix err_recycle_space.
 for jx = 1:num_eps
 
-    [S1,n] = return_matrix(which_matrix,N);
-
+[S1,n] = return_matrix(which_matrix,N);
 
 b = rand(n,1);
 b = b/norm(b);
@@ -64,46 +59,40 @@ U = Vc(:,1:m)*P;
 C = S1*U;
 S = S1;
 
-
 for ix=1:num_systems
-
-
-
+  
     fprintf("\nSOLVING FOR SYSTEM # %d ... \n\n",ix);
-   
     [H,V] = arnoldi( S, b , n,m, 1);
- 
-
-        [U,D] = scale_cols_of_U(U,k);
-         Vhat = [U V(:,1:m)];
-         What = [C V(:,1:m+1)];
-         G = zeros(m+1+k,m+k);
-         G(1:k,1:k) = D;
-         G(k+1:m+1+k,k+1:m+k) = H;
+    [U,D] = scale_cols_of_U(U,k);
+    Vhat = [U V(:,1:m)];
+    What = [C V(:,1:m+1)];
+    G = zeros(m+1+k,m+k);
+    G(1:k,1:k) = D;
+    G(k+1:m+1+k,k+1:m+k) = H;
         
-
-
+    %Change to new problem
     b = rand(n,1);
     b = b/norm(b);
     S = S + matrix_eps(jx)*sprand(S);
 
-
+    %Compute new U using previous Arnoldi
     [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
     U = Vhat*P;
     [C,R] = qr(S*U,0);
     U = U/R;
 
+    %measure error
+    theta = (U'*U)\(U'*S*U);
+    eigs_res_norm = norm(U*theta - S*U)/norm(U);
+    fprintf("avg_res_norm = %f\n", eigs_res_norm);
 
-     theta = (U'*U)\(U'*S*U);
-     eigs_res_norm = norm(U*theta - S*U)/norm(U);
-     fprintf("avg_res_norm = %f\n", eigs_res_norm);
-     err_recycle_space(jx,ix) = eigs_res_norm;
+    %store result
+    err_recycle_space(jx,ix) = eigs_res_norm;
     
 end
-
-
 end
 
+%Plot results
 semilogy(err_recycle_space(1,:) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
 hold on;
 semilogy(err_recycle_space(2,:),'-v', 'LineWidth',1);

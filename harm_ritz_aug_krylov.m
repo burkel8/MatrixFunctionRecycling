@@ -1,3 +1,4 @@
+%Function to solve augmented harmonic ritz problem.
 function [P] = harm_ritz_aug_krylov(m, k, G, What, Vhat)
     
     P = zeros(m+k,k);

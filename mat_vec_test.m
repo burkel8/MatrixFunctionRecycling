@@ -1,4 +1,5 @@
-%% Step 1: Choose parameters for program
+%This script runs an experiment which plots the number of matvecs required
+%to reach a specified accuracy.
 
 %%First choose the matrix possible options are
 %-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
@@ -28,40 +29,33 @@ linewidth = 1;
 [A,n] = return_matrix(which_matrix,N);
 [f_scalar, f_matrix] = return_function(problem);
 
-%% Define rhs
+% Define rhs
 b = rand(n,1);
 b = b/norm(b);
 
-
-
-%define exact
+%compute exact solution
 exact = f_matrix(A,b);
 
 
-%% Run Arnoldi
+%Run Arnoldi
 %Create a deflation subspace
 [U,~] = eigs(A,k,'smallestabs'); % 'Tolerance',10e-09);
  C = A*U;
 
-
-
-%% Run Arnoldi on a close matrix
+%Set all the below variables to a dummy value.
 err_arnoldi_result = 60;
 err_rFOM_v1_result = 60;
 err_rFOM_v2_result = 60;
 err_rFOM_v3_result = 60;
 
-i = 1; 
+i = 1; %first Arnoldi cycle length
 
-%if i < k
-%   fprintf('ERROR: k Arnoldi cycle length should not be smaller than k!');
-%end
-
+%keep running each method of approximation with a new cycle
+%length until we converge
 while err_arnoldi_result > tol
 
 [H,V] = arnoldi( A, b , n,i, 1);
 e1 = zeros(i,1); e1(1)=1;
-fprintf('Running test number '); i
 arnoldi_approx = norm(b)*V(:,1:i)*f_matrix(H(1:i,1:i),e1);
 err_arnoldi_result = norm(exact - arnoldi_approx)
 err_arnoldi(i) = err_arnoldi_result;
@@ -87,8 +81,7 @@ end
 i = i + 1;
 end
 
-%x axis labels should all have a k added to them, nonethelss the
-%are still the same
+% plot results
 semilogy(err_arnoldi,'-s','LineWidth',1);
 hold on;
 semilogy(err_rFOM_v1,'-v','LineWidth',1 ,'MarkerSize', 9);

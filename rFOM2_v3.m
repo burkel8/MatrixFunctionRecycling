@@ -1,5 +1,6 @@
 function [deflated_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad, f_scalar, f_matrix)
 
+%Set up contour
 s = eigs(H(1:m,1:m),1,'smallestreal');
 l = eigs(H(1:m,1:m),1,'largestreal');
 sm_eig = s ;
@@ -10,7 +11,7 @@ r = (sm_eig/2)+(circle_centre-sm_eig) + shift;
 
 term1 = zeros(m+k,1);
 
- %% Define constant factors appearing in quadrature integration
+ % Define constant factors appearing in quadrature integration
  [U,D] = scale_cols_of_U(U,k);
  Vhat = [U V(:,1:m)];
  What = [C V(:,1:m)];
@@ -38,6 +39,7 @@ yy = @(zx) Gz(zx)\((I + B(zx)*(Gz(zx)\I))\(B(zx)*(Gz(zx)\WTb)));
 delta_theta = 2*pi / num_quad;
 const = r/num_quad;
 
+%Do quadrature
 for j = 1:num_quad
 
   theta = (j-1)*delta_theta;
@@ -49,7 +51,7 @@ for j = 1:num_quad
   
 end
 
-
+%Compute Approximation
 deflated_approx = Vhat*f_matrix(G,WTWinvWTb) - const*Vhat*term1;
 
 end

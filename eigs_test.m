@@ -1,8 +1,5 @@
-%% Note this code is used to test the accuracy of U as a recycle subspace
-%% As we move through the sequence of f(A)b problems. The accuracy of U does not
-%% depend on the actual evaluation of f(A)b using our methods, so we do not include
-%% these computations in the code for speed.
-
+%% Note this code is used to examine how the spectrum of each matrix in the sequence
+%% of problems changes for every value of epsilon.
 
 
 %% Step 1: Choose parameters for program
@@ -41,25 +38,21 @@ linewidth = 1;
 [num_eps] = size(matrix_eps,2);
 eigs_monitor = zeros(num_eps,num_systems);
 
-
-
-
-
-%% computing f(A)b
+%For each value of epsilon look at how the spectrum shifts for each
+%new matrix
 for jx = 1:num_eps
 
     [A,n] = return_matrix(which_matrix,N);
 
-for ix=1:num_systems
+    for ix=1:num_systems
 
      A = A + matrix_eps(jx)*sprand(A);
      eigs_monitor(jx,ix) = real(eigs(A,1,'smallestreal'));
     
+    end
 end
 
-
-end
-
+%plot results
 plot(eigs_monitor(1,:) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
 hold on;
 plot(eigs_monitor(2,:),'-v', 'LineWidth',1);

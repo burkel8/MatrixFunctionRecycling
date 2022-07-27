@@ -1,4 +1,7 @@
-%% Step 1: Choose parameters for program
+%This program runs tests rFOM2 as a recycle method by creating a sequence
+%of problems and recycling between them
+
+%Choose parameters for program
 
 %%First choose the matrix possible options are
 %-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
@@ -20,8 +23,8 @@ k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
 num_quad_points = 1000;   %number of quadrature points (add as many differnt points to this list)
-matrix_eps = 0.001;  %parameter to determine how much the matrix changes.
-num_systems = 15;
+matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
+num_systems = 5;
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
@@ -32,6 +35,7 @@ linewidth = 1;
 e1 = zeros(m,1);
 e1(1)=1;
 
+%vectors to store results
 err_arnoldi = zeros(1,num_systems);
 err_quad_arnoldi = zeros(1,num_systems);
 err_rFOM_v1 = zeros(1,num_systems);
@@ -40,15 +44,16 @@ err_rFOM_v3 = zeros(1,num_systems);
 err_recycle_space = zeros(1,num_systems);
 eigs_monitor = zeros(1,num_systems);
 
+%store matrix and function in appropriate vectors
 [f_scalar, f_matrix] = return_function(problem);
 [A,n] = return_matrix(which_matrix,N);
 
+%create vector
 b = rand(n,1);
 b = b/norm(b);
 x = f_matrix(A,b);
-x0 = zeros(n,1);
 
-%% Run Arnoldi on a close matrix
+%Run Arnoldi on a close matrix to generate first U
 Aclose = A + 0.001*sprand(A);
 g = rand(n,1);
 [Hc,Vc] = arnoldi( Aclose, g , n,m, 1);
@@ -56,67 +61,62 @@ g = rand(n,1);
 U = Vc(:,1:m)*P;
 C = A*U;
 
-
-theta = (U'*U)\(U'*A*U);
-eigs_res_norm = norm(U*theta - A*U)/norm(U);
-fprintf("avg_res_norm = %f\n", eigs_res_norm);
-
-
-%% computing f(A)b
-
+%Create sequence of problems and approximate f(A)b for each.
 for ix=1:num_systems
 
-    eigs_monitor(ix) = real(eigs(A,1,'smallestreal'));
+    eigs_monitor(ix) = real(eigs(A,1,'smallestreal')); %line not needed
 
-    fprintf("\nSOLVING FOR SYSTEM # %d ... \n\n",ix);
-    defl_subsp_tol = 1.0e-3;
+    fprintf("\n Approximating f(A)b # %d ... \n\n",ix);
+
+    %Run Arnoldi
     [H,V] = arnoldi( A, b , n,m, 1);
   
-     arnoldi_approx = norm(b)*V(:,1:m)*f_matrix(H(1:m,1:m),e1);
-     err_arnoldi(ix) = norm(x - arnoldi_approx);
+    %Standard Arnoldi Approximation
+    arnoldi_approx = norm(b)*V(:,1:m)*f_matrix(H(1:m,1:m),e1);
+    err_arnoldi(ix) = norm(x - arnoldi_approx);
 
-
+    %Quadrature Arnoldi approximation
     quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad_points,f_scalar);
     err_quad_arnoldi(ix) = norm(x - quad_arnoldi_Approx);
 
+    %rFOM2 f1
     [rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad_points, f_scalar);
     err_rFOM_v1(ix) = norm(x - rFOM_v1_approx);
 
+    %rFOM2 f2
     [rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad_points, f_scalar);
     err_rFOM_v2(ix) = norm(x - rFOM_v2_approx);
 
+    %rFOM2 f3
     [rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad_points, f_scalar, f_matrix);
     err_rFOM_v3(ix) = norm(x - rFOM_v3_approx);
 
-   fprintf("\n... DONE\n");
+    fprintf("\n... DONE\n");
 
+     %Construct G
         [U,D] = scale_cols_of_U(U,k);
          Vhat = [U V(:,1:m)];
          What = [C V(:,1:m+1)];
          G = zeros(m+1+k,m+k);
          G(1:k,1:k) = D;
          G(k+1:m+1+k,k+1:m+k) = H;
-        
-       
-
-
+    
+    %Create new problem in sequence and compute its exact solution
     b = rand(n,1);
     b = b/norm(b);
     A = A + matrix_eps*sprand(A);
     x = f_matrix(A,b);
 
+    %Compute new U for next problem in the sequence
     [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
     U = Vhat*P;
     [C,R] = qr(A*U,0);
     U = U/R;
 
-      theta = (U'*U)\(U'*A*U);
-eigs_res_norm = norm(U*theta - A*U)/norm(U);
-fprintf("avg_res_norm = %f\n", eigs_res_norm);
-err_recycle_space(ix) = eigs_res_norm;
-    
+         
 end
 
+%Plot Results
 semilogy(err_arnoldi/norm(x) ,'-s', 'LineWidth', 1, 'MarkerSize', 8);
 hold on;
 semilogy(err_quad_arnoldi/norm(x) ,'-o', 'LineWidth',1);

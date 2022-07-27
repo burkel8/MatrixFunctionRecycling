@@ -1,3 +1,5 @@
+%Function which returns the matrix to be used in each experiment.
+%User can add a matrix here if they wish.
 function [A,n] = return_matrix(which_matrix,N)
 
 if which_matrix == "smallLQCD"

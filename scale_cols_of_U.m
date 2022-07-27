@@ -1,3 +1,4 @@
+%A function which takes in a U and returns Unew and D such Unew = UD
 function [U,D] = scale_cols_of_U(U,k)
 D = zeros(k,k);
 for i = 1:k

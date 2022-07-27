@@ -1,3 +1,6 @@
+%Function which returns the function to be used in experiments.
+%User can add a function here if they wish.
+
 function [f_scalar, f_matrix] = return_function(problem)
 
 f1_scalar = @(zx) 1.0/zx;
