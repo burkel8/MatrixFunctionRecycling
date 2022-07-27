@@ -6,7 +6,7 @@
 %-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
 %-- A poisson matrix of size N*N x N*N (user specifies N) ("poisson")
 %-- A chemical potential matrix of size N*N x N*N (user specifies N) ("chemical_potantial")
-which_matrix = "poisson";   
+which_matrix = "smallLQCD";   
 
 %%Choose the function 
 % Possible options are
@@ -14,13 +14,13 @@ which_matrix = "poisson";
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'sqrt';
+problem = 'inverse';
 
 m = 40;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 100;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad = [10000,30000,50000,70000];   %number of quadrature points (add as many differnt points to this list)
+num_quad = [100,300,500,700];   %number of quadrature points (add as many differnt points to this list)
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
