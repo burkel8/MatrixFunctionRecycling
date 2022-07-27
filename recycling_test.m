@@ -1,5 +1,5 @@
-%This program runs tests rFOM2 as a recycle method by creating a sequence
-%of problems and recycling between them
+%This program tests all three versions of rFOM2 as a recycle method by approximating
+% a sequence of f(A)b problems and recycling between them.
 
 %Choose parameters for program
 

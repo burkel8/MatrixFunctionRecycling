@@ -1,3 +1,5 @@
+%rFOM2 - implementation 3
+
 function [deflated_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad, f_scalar, f_matrix)
 
 %Set up contour
