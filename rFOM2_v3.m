@@ -23,8 +23,8 @@ term1 = zeros(m+k,1);
  UmC = U-C;
 
 em = zeros(m,1); em(m) = 1.0;
-WTb = What'*b;
-WTW = What'*What;
+WTb = Vhat'*b;
+WTW = Vhat'*What;
 WTWinvWTb = (WTW)\WTb;
 
 hterm = -H(m+1,m)*V(:,m+1)*em';
@@ -32,7 +32,7 @@ I = speye(m+k);
 
 R = @(zx) [zx*UmC,hterm];
 Gz = @(zx) WTW*(zx*speye(k+m)-G) ;
-B = @(zx) What'*R(zx);
+B = @(zx) Vhat'*R(zx);
 
 %We found it more numerically stable to keep WTb in the function yy
 %instead of having it in the final update once.

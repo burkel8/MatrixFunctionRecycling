@@ -24,11 +24,11 @@ term1 = zeros(m+k,1);
  e = zeros(m,1);
  e(m)=1;
  hterm = H(m+1,m)*V(:,m+1)*e';
- WTb = What'*b;
- WTW = What'*What;
+ WTb = Vhat'*b;
+ WTW = Vhat'*What;
 
  R = @(zx) [zx*UmC  -hterm];
-yy = @(zx) (WTW*(zx*speye(m+k)-G) + What'*R(zx))\WTb;
+yy = @(zx) (WTW*(zx*speye(m+k)-G) + Vhat'*R(zx))\WTb;
 
 delta_theta = 2*pi / num_quad;
 const = r/num_quad;
