@@ -23,20 +23,20 @@ term1 = zeros(m+k,1);
  UmC = U-C;
 
 em = zeros(m,1); em(m) = 1.0;
-WTb = Vhat'*b;
-WTW = Vhat'*What;
-WTWinvWTb = (WTW)\WTb;
+VTb = Vhat'*b;
+VTW = Vhat'*What;
+VTWinvVTb = (VTW)\VTb;
 
 hterm = -H(m+1,m)*V(:,m+1)*em';
 I = speye(m+k);
 
 R = @(zx) [zx*UmC,hterm];
-Gz = @(zx) WTW*(zx*speye(k+m)-G) ;
+Gz = @(zx) VTW*(zx*speye(k+m)-G) ;
 B = @(zx) Vhat'*R(zx);
 
 %We found it more numerically stable to keep WTb in the function yy
 %instead of having it in the final update once.
-yy = @(zx) Gz(zx)\((I + B(zx)*(Gz(zx)\I))\(B(zx)*(Gz(zx)\WTb)));
+yy = @(zx) Gz(zx)\((I + B(zx)*(Gz(zx)\I))\(B(zx)*(Gz(zx)\VTb)));
 
 delta_theta = 2*pi / num_quad;
 const = r/num_quad;
@@ -54,6 +54,6 @@ for j = 1:num_quad
 end
 
 %Compute Approximation
-deflated_approx = Vhat*f_matrix(G,WTWinvWTb) - const*Vhat*term1;
+deflated_approx = Vhat*f_matrix(G,VTWinvVTb) - const*Vhat*term1;
 
 end
