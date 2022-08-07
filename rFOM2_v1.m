@@ -26,15 +26,19 @@ VTb = V(:,1:m)'*b;
 UTb = U'*b;
 UTVp1H = U'*V*H;
 
-%precompute relevant functions
-y = @(zx) (...
-           zx*speye(m) - H(1:m,1:m) ...
-           - zx*(zx*VTU - VTC)*((zx*UTU - UTC)\UTV)...
-           +(zx*VTU - VTC)*((zx*UTU - UTC)\UTVp1H))\ ...
-           (VTb - (zx*VTU - VTC)*((zx*UTU - UTC)\UTb) ) ;
 
-z1 = @(zx) (zx*UTU - UTC)\UTb;
-z2 = @(zx) (zx*UTU - UTC)\(zx*UTV-UTVp1H);
+%%Define functions (both definitions of y below are equivelant)
+
+%y = @(zx) (...
+%           zx*speye(m) - H(1:m,1:m) ...
+%           - zx*(zx*VTU - VTC)*((zx*UTU - UTC)\UTV)...
+%           +(zx*VTU - VTC)*((zx*UTU - UTC)\UTVp1H))\ ...
+%           (VTb - (zx*VTU - VTC)*((zx*UTU - UTC)\UTb) ) ;
+
+y = @(zx) (zx*speye(m) - H(1:m,1:m) - (zx*VTU - VTC)*( (zx*UTU-UTC)\ ...
+    (zx*UTV - UTVp1H) ))\(VTb - (zx*VTU - VTC)*( (zx*UTU - UTC)\UTb));
+
+z1 = @(zx,yx) (zx*UTU - UTC)\(UTb - (zx*UTV - UTVp1H)*yx) ;
 
 %Do quadrature
 delta_theta = 2*pi / num_quad;
@@ -47,11 +51,9 @@ for j = 1:num_quad
   common_factor = f_scalar(z)*exp(1i*theta);
   yterm = y(z);
   term1 = term1 + common_factor*yterm;
-  term2 = term2 + common_factor*z1(z);
-  term3 = term3 + common_factor*z2(z)*yterm;
+  term2 = term2 + common_factor*z1(z,yterm);
 end
 
 %Compute approximation
-deflated_approx = const*V(:,1:m)*term1 + const*U*term2 - const*U*term3;
-
+deflated_approx = const*V(:,1:m)*term1 + const*U*term2;
 end
