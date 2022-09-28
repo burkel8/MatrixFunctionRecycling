@@ -6,7 +6,7 @@
 %-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
 %-- A poisson matrix of size N*N x N*N (user specifies N) ("poisson")
 %-- A chemical potential matrix of size N*N x N*N (user specifies N) ("chemical_potantial")
-which_matrix = "smallLQCD";   
+which_matrix = "hermetian_QCD";   
 
 %%Choose the function 
 % Possible options are
@@ -16,11 +16,12 @@ which_matrix = "smallLQCD";
 % -- square root function ("sqrt")
 problem = 'inverse';
 
-m = 40;  %Arnoldi cycle length
-k = 20;  %recycle space dimension
+m = 20;  %Arnoldi cycle length
+k = 10;  %recycle space dimension
 N = 100;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad = [100,300,500,700];   %number of quadrature points (add as many differnt points to this list)
+mass = -8;
+num_quad = [100,200,500,1000,1500];   %number of quadrature points (add as many differnt points to this list)
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
@@ -28,7 +29,7 @@ linewidth = 1;
 %%%%%%%%%%%%%%    END USER INPUT HERE  %%%%%%%%%%%%%%%%%%%
 
 %Store matrix and function in appropriate variables.
-[A,n] = return_matrix(which_matrix,N);
+[A,n] = return_matrix(which_matrix,N,mass);
 [f_scalar, f_matrix] = return_function(problem);
 
 % Define vector
