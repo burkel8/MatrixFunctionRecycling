@@ -18,7 +18,7 @@ problem = 'inverse';
 
 
 %% Parameters of solve
-m = 20;  %Arnoldi cycle length
+m = 30;  %Arnoldi cycle length
 k = 10;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
