@@ -6,6 +6,7 @@ if which_matrix == "smallLQCD"
       load('smallLQCD_A1.mat');
       A=A1;
       [n,~] = size(A); 
+      A = A - mass*speye(n);
 elseif which_matrix == "hermetian_QCD"
       load("hermetian_QCD.mat");
       A = Problem.A;
@@ -18,9 +19,7 @@ elseif which_matrix == "hermetian_QCD"
       Gamma5 = kron(k1,eye3);
       Q = Gamma5*A;
       Q2 = Q'*Q;
-      A = Q2;
-      Q = Q - mass*speye(n);
-      A = Q;
+      A = Q2 - mass*speye(n);
 elseif which_matrix == "poisson"
  
 A = (N+1)^2*gallery('poisson',N);

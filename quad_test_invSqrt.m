@@ -14,15 +14,14 @@ which_matrix = "smallLQCD";
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'inverse';
+problem = 'sign';
 
 m = 40;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 100;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-mass = 0.065;
-num_quad = [100,250,300,500,700,800,1000];   %number of quadrature points (add as many differnt points to this list)
-
+num_quad = [1,2,3,4,5,6,7,8,9,10];   %number of quadrature points (add as many differnt points to this list)
+mass = 0.65;
 %Paramters for fontsize and line width in plots
 fontsize = 13;
 linewidth = 1;
@@ -54,6 +53,7 @@ err_rFOM_v1 = zeros(1,num_tests);
 err_rFOM_v2 = zeros(1,num_tests);
 err_rFOM_v3 = zeros(1,num_tests);
 
+
 %Run Arnoldi
 [H,V] = arnoldi( A, b , n,m, 1);
 
@@ -65,19 +65,20 @@ arnoldi_approx = norm(b)*V(:,1:m)*f_matrix(H(1:m,1:m),e1);
 err_arnoldi(i) = norm(exact - arnoldi_approx);
 
 %quadrature Arnoldi approximation
-quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad(i),f_scalar);
+%quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad(i),f_scalar);
+quad_arnoldi_Approx = quad_arnoldi_invSqrt(V,H,m,num_quad(i));
 err_quad_arnoldi(i) = norm(exact - quad_arnoldi_Approx);
 
 % rFOM2 f1
-[rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad(i), f_scalar);
+[rFOM_v1_approx] = rFOM2_v1_invSqrt(b,V,H,m,k,U,C,num_quad(i));
 err_rFOM_v1(i) = norm(exact - rFOM_v1_approx);
 
 % rFOM2 f2
-[rFOM_v2_approx] = rFOM2_v2(b,V,H,m,k,U,C,num_quad(i), f_scalar);
+[rFOM_v2_approx] = rFOM2_v2_invSqrt(b,V,H,m,k,U,C,num_quad(i));
 err_rFOM_v2(i) = norm(exact - rFOM_v2_approx);
 
-%rFOM2 f3
-[rFOM_v3_approx] = rFOM2_v3(b,V,H,m,k,U,C,num_quad(i), f_scalar, f_matrix);
+% rFOM2 f2
+[rFOM_v3_approx] = rFOM2_v3_invSqrt(b,V,H,m,k,U,C,num_quad(i), f_matrix);
 err_rFOM_v3(i) = norm(exact - rFOM_v3_approx);
 
 end
@@ -87,19 +88,20 @@ x=1:1:num_tests;
 points = num_quad(x);
 semilogy(points,err_arnoldi,'-s','LineWidth',1);
 hold on;
-semilogy(points,err_quad_arnoldi,'-o','LineWidth',1);
+semilogy(points,err_quad_arnoldi,'-s','LineWidth',1);
 hold on;
 semilogy(points,err_rFOM_v1,'-v','LineWidth',1 ,'MarkerSize', 9);
 hold on;
-semilogy(points,err_rFOM_v2,'-o','LineWidth',1);
+semilogy(points,err_rFOM_v2,'-v','LineWidth',1 ,'MarkerSize', 9);
 hold on;
-semilogy(points,err_rFOM_v3,'-s','LineWidth',1);
+semilogy(points,err_rFOM_v3,'-v','LineWidth',1 ,'MarkerSize', 9);
 hold off;
+
 title(' Approximation Error ','interpreter','latex','FontSize',fontsize)
 xlabel('number of quad nodes','interpreter','latex','FontSize',fontsize);
 ylabel('$\| f(\textbf{A})\textbf{b} - \tilde{f}_{i} \|_{2}$','interpreter','latex','FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi','Arnoldi (q)','rFOM$^{2}$ $\tilde{f}_{1}$','rFOM$^{2}$ $\tilde{f}_{2}$', 'rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
+lgd = legend('Arnoldi','quad Arnoldi','rFOM$^{2}$ $\tilde{f}_{1}$', 'rFOM$^{2}$ $\tilde{f}_{2}$', 'rFOM$^{2}$ $\tilde{f}_{3}$','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 xticks(points)
 

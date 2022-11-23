@@ -74,17 +74,23 @@ for ix=1:num_systems
     b = rand(n,1);
     b = b/norm(b);
     S = S + matrix_eps(jx)*sprand(S);
+    [V,~] = eigs(S1,k,'smallestabs');
+
 
     %Compute new U using previous Arnoldi
     [P] = harm_ritz_aug_krylov(m,k,G,What,Vhat);
     U = Vhat*P;
-    [C,R] = qr(S*U,0);
-    U = U/R;
+    [U,R] = qr(U,0);
+    C = S*U;
+    %[C,R] = qr(S*U,0);
+    %U = U/R;
 
     %measure error
-    theta = (U'*U)\(U'*S*U);
-    eigs_res_norm = norm(U*theta - S*U)/norm(U);
-    fprintf("avg_res_norm = %f\n", eigs_res_norm);
+    %theta = (U'*U)\(U'*S*U);
+    %eigs_res_norm = norm(U*theta - S*U)/norm(U);
+    %fprintf("avg_res_norm = %f\n", eigs_res_norm);
+
+    eigs_res_norm = subspace(U,V);
 
     %store result
     err_recycle_space(jx,ix) = eigs_res_norm;
@@ -104,7 +110,7 @@ hold off;
 
 title('Accuracy of $\mathcal{U}$ as an eigenvector approximation','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
-ylabel('$ \frac{\|\textbf{U} \textbf{S} - \textbf{A} \textbf{U}\|_{2}}{\|\textbf{U}\|_{2}} $','interpreter','latex','FontSize',fontsize); 
+ylabel('$\theta(\textbf{U},\textbf{Z})$','interpreter','latex','FontSize',fontsize); 
 grid on;
 lgd = legend('$\epsilon = 0$', '$\epsilon = 0.0001$', '$\epsilon = 0.001$', '$\epsilon = 0.01$','interpreter','latex');
 set(lgd,'FontSize',fontsize);

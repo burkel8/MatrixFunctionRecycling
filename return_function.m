@@ -18,7 +18,7 @@ f4_matrix = @(Ax,bx) sqrtm(full(Ax))*bx;
 if problem =="inverse"
     f_scalar = @(zx) f1_scalar(zx);
     f_matrix = @(Ax,bx) f1_matrix(Ax,bx);
-elseif problem == "sign"
+elseif problem == "invSqrt"
     f_scalar = @(zx) f2_scalar(zx);
     f_matrix = @(Ax,bx) f2_matrix(Ax,bx);
 elseif problem == "log"

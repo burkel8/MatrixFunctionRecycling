@@ -62,7 +62,7 @@ hold on;
 plot(eigs_monitor(4,:),'-s', 'LineWidth',1);
 hold off;
 
-title('Minimum eigenvalue for each $\textbf{A}_{i}$','interpreter','latex', 'FontSize', fontsize)
+title('Minimum eigenvalue for each $\textbf{A}^{(i)}$','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('$ \mbox{min}(\lambda_{j}) $','interpreter','latex','FontSize',fontsize); 
 grid on;
