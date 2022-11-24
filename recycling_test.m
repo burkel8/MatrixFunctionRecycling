@@ -7,25 +7,38 @@
 %-- A small lattice QCD matrix of size 3072x3072 ("smallLQCD")
 %-- A poisson matrix of size N*N x N*N (user specifies N) ("poisson")
 %-- A chemical potential matrix of size N*N x N*N (user specifies N) ("chemical_potantial")
-which_matrix = "smallLQCD";   
+matrix = "hermitian_QCD";   
 
 %%Choose the function . Available options are
 % -- inverse function ("inverse")
 % -- Sign function ("sign")
 % -- log function ("log")
 % -- square root function ("sqrt")
-problem = 'inverse';
+problem = 'invSqrt';
 
 
+if strncmp(matrix,"smallLQCD",20) == 1
+   mass =  0.0;
+elseif strncmp(matrix,"hermitian_QCD",20) == 1
+   mass = -7.7;
+else % 0 to be used for all other matrices
+   mass = 0;
+end
+
+if strncmp(problem,"inverse",20) == 1
+    num_quad_points = 3000;   
+elseif strncmp(problem,"invSqrt",20) == 1
+num_quad_points = 300; 
+end
 %% Parameters of solve
 m = 40;  %Arnoldi cycle length
 k = 20;  %recycle space dimension
 N = 50;  %Parameter for Poisson and chemical potential matrix (value 
          %does not matter for other matrices)
-num_quad_points = 1000;   %number of quadrature points (add as many differnt points to this list)
-mass = 0.065;
+
+
 matrix_eps = 0.0;  %parameter to determine how much the matrix changes.
-num_systems = 10;
+num_systems = 5;
 
 
 %Paramters for fontsize and line width in plots
@@ -45,10 +58,7 @@ eigs_monitor = zeros(1,num_systems);
 
 %store matrix and function in appropriate vectors
 [f_scalar, f_matrix] = return_function(problem);
-[A,n] = return_matrix(which_matrix,N,mass);
-
-
-
+[A,n] = return_matrix(matrix,N,mass);
 
 %create vector
 b = rand(n,1);
@@ -78,11 +88,22 @@ for ix=1:num_systems
     err_arnoldi(ix) = norm(x - arnoldi_approx);
 
     %Quadrature Arnoldi approximation
-    quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad_points,f_scalar);
+   
+
+    if strncmp(problem,"invSqrt",20) == 1
+     quad_arnoldi_Approx = quad_arnoldi_invSqrt(V,H,m,num_quad_points);
+    else 
+      quad_arnoldi_Approx = quad_arnoldi(b,V,H,m,num_quad_points,f_scalar);
+    end
     err_quad_arnoldi(ix) = norm(x - quad_arnoldi_Approx);
 
     %rFOM2 f1
-    [rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad_points,f_scalar);
+    
+    if strncmp(problem,"invSqrt",20) == 1
+    [rFOM_v1_approx] = rFOM2_v1_invSqrt(b,V,H,m,k,U,C,num_quad_points);
+    else 
+     [rFOM_v1_approx] = rFOM2_v1(b,V,H,m,k,U,C,num_quad_points,f_scalar);
+    end
     err_rFOM_v1(ix) = norm(x - rFOM_v1_approx);
 
     fprintf("\n... DONE\n");
@@ -98,7 +119,13 @@ for ix=1:num_systems
     %Create new problem in sequence and compute its exact solution
     b = rand(n,1);
     b = b/norm(b);
+
+    if strncmp(matrix,"hermetian_QCD",20) == 1
+    randVec = eps*rand(n,1);
+    A = A + toeplitz(randVec);
+    else
     A = A + matrix_eps*sprand(A);
+    end
    
 
     x = f_matrix(A,b);
