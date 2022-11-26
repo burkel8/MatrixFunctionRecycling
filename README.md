@@ -12,7 +12,7 @@ The code contains the following main run scripts
 - quad_test.m     Tests the three implementations of rFOM2 as an augmented Krylov subspace method.
 - recycle_test.m  Tests the three implementations of rFOM2 as a recycle method.
 
-There is also two other (less important) run scripts
+There is also two other run scripts
 
 - U_test.m        Tests the quality of U as an eigenvector approximation.
 - eigs_test.m     Looks at the minimum eigenvalue of each matrix in the sequence of problems. 
