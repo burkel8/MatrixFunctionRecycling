@@ -1,31 +1,37 @@
 %Function which returns the matrix to be used in each experiment.
 %User can add a matrix here if they wish.
-function [A,n] = return_matrix(which_matrix,N,mass)
 
-if which_matrix == "smallLQCD"
+%Input: matrix - a string which stores the name of the matrix to use
+%       N      - An integer used to determine the size of the Poisson or
+%                or chemical potential matrix
+%      shift   - A scalar shift used to shift matrix via A = A - shift*I
+
+
+%Output: A     - The matrix
+%        n     - The size of the matrix
+function [A,n] = return_matrix(matrix,N,shift)
+if matrix == "smallLQCD"
       load('smallLQCD_A1.mat');
       A=A1;
       [n,~] = size(A); 
-      A = A - mass*speye(n);
-elseif which_matrix == "hermetian_QCD"
+      A = A - shift*speye(n);
+elseif matrix == "hermitian_QCD"
       load("hermetian_QCD.mat");
       A = Problem.A;
       n = size(A,2);
-     
       eyel = eye(256);
       eye3 = eye(3);
       gamma5 = [0 0 -1 0; 0 0 0 -1; -1 0 0 0; 0 -1 0 0];
       k1 = kron(eyel,gamma5);
       Gamma5 = kron(k1,eye3);
       Q = Gamma5*A;
-      Q2 = Q'*Q;
-      A = Q2 - mass*speye(n);
-elseif which_matrix == "poisson"
+      A = Q - shift*speye(n);
+elseif matrix == "poisson"
  
 A = (N+1)^2*gallery('poisson',N);
 n = N*N;
 
-elseif which_matrix == "chemical_potential"
+elseif matrix == "chemical_potential"
 D2 = (N+1)^2*gallery('tridiag',N);
 I = speye(N);
 D2 = kron(I,D2) + kron(D2,I);
@@ -36,7 +42,7 @@ A = D2 + 0*D1;
 S = A;
 [n,~]=size(S);
 else    
-    fprintf('ERR: no matrix chosen!');
+    err('ERR: no matrix chosen!');
 end
 
 end

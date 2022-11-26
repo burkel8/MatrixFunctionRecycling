@@ -1,8 +1,19 @@
-%rFOM2 - implementation 3
+%Function to compute approximation to f(A)b when f is the inverse square root function
+% using implementation 3 of r(FOM)^2. The quadrature rule used is outlined
+% in section 7 of the preprint.
 
+%Inputs: b - vector b for which we want to approximate f(A)b
+%        V,H - basis of Krylov subspace and hessenberg matrix H constructed
+%        from Arnoldi process to build basis for Km(A,b)
+%        m - dimension of Krylov subspace
+%        k - dimension of recycling subspace
+%        U - recycling subspace
+%        C - matrix C = A*U.
+%        num_quad - number of quadrature points to be used
+%        f_matrix - the matrix function f(A), for n x n matrix A.
+
+%Output: deflated_approx an n x 1 vector storing the approximation to f(A)b
 function [deflated_approx] = rFOM2_v3_invSqrt(b,V,H,m,k,U,C,num_quad, f_matrix)
-
- 
 
 term1 = zeros(m+k,1);
 
@@ -27,32 +38,25 @@ R = @(zx) [zx*UmC,hterm];
 Gz = @(zx) VTW*(zx*speye(k+m)-G) ;
 B = @(zx) Vhat'*R(zx);
 
-%We found it more numerically stable to keep WTb in the function yy
-%instead of having it in the final update once.
+%Function yy representing the quadrature integral I in eq (6.8) of preprint.
 yy = @(zx) Gz(zx)\((I + B(zx)*(Gz(zx)\I))\(B(zx)*(Gz(zx)\VTb)));
 
 const = -2/pi;
 
- weights = pi/num_quad*ones(1,num_quad);
- %The notes then are the points themselves.
-%In this case we take them between zero and one
+%Define quadrature nodes and weights
+weights = pi/num_quad*ones(1,num_quad);
 t = zeros(1,num_quad);
 for ii = 1:num_quad
 t(ii) = cos((2*ii-1)/(2*num_quad) * pi);
 end
- tt = -1*(1-t)./(1+t);
+tt = -1*(1-t)./(1+t);
 
-
-
-%Do quadrature
+%perform quadrature
 for j = 1:num_quad
-
   yterm = yy(tt(j));
   term1 = term1 + weights(j)*(1/(1+t(j)))*yterm;
-  
 end
 
 %Compute Approximation
 deflated_approx = Vhat*f_matrix(G,VTWinvVTb) - const*Vhat*term1;
-
 end
