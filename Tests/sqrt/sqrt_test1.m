@@ -2,7 +2,8 @@
 % the standard Arnoldi approximation with quadrature as the number of
 % quadrature points are varied.
 
-%The code is tested on the inverse square root function.
+%The code is tested on the square root function.
+
 addpath(genpath('../'))
 
 
@@ -78,6 +79,6 @@ title('Square Root Test','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('Relative Error', 'FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi error', 'r(FOM)$^{2}$ quad error','G','interpreter','latex');
+lgd = legend('Arnoldi error', 'r(FOM)$^{2}$ v1','r(FOM)$^{2}$ v3','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 
