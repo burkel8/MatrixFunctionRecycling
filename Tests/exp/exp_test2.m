@@ -1,43 +1,34 @@
-% Test 6: Quadrature test: This program tests the convergence behaviour of r(FOM)2 in comparison to
-% the standard Arnoldi approximation with quadrature as the number of
-% quadrature points are varied.
+% exp_test1: Tests r(FOM)2 as a recycling method for the special case
+% where the matrix A remains fixed and only the right hand sides change. 
 
-%The code is tested on the inverse square root function.
+% The example used is the exponential function of a network matrix of size
+% 8297 x 8297
+
+%Previously computed solutions are used to contruct the recycling subspace.
 addpath(genpath('../'))
 
-N = 40;
-D2 = (N+1)^2*gallery('tridiag',N);
-I = speye(N);
-D2 = kron(I,D2) + kron(D2,I);
-o = ones(N,1);
-D1 = (N+1)/2*spdiags([-o,0*o,o],-1:1,N,N);
-D1 = kron(I,D1) + kron(D1,I);
-A = D2 + 0*D1;
+%load network matrix
+load("../../data/wiki-Vote.mat");
+A = -Problem.A;
 
-% choose time step s = 2*1e-3
-s = 2*1e-3;
-A = -s*A;
-% choose right-hand side as normalized vector of all ones
-b = ones(N^2,1); b = b/norm(b);
-
-
+%Define operator used in the Arnoldi process in this case the operator is A*A
 Aop = @(bx) A*bx;
 
-p.n = size(A,1);
-p.m = 20;
-p.k = 15;
-p.C = [];
+%Define struct p which contains the parameters of the recycling algorithm 
+p.n = size(A,1); %problem size
+p.m = 30;       % m: Length of Arnoldi cycle
+p.k = 10;        % k: Dimension of recycling subspace
+p.U = [];        % U: Matrix with columns forming a basis for recycling subspace
+p.C = [];        % C: Matrix C given by C = A*U;
+p.num_quad = 500; % num_qiuad: Number of quadrature points used in method
 
-quad_points = [200,500,600,900,1000,2000];
-num_experiments = size(quad_points,2);
-
-%Compute deflation subspace in advance
-[U,~] = eigs(A,p.k,'largestabs');
-[p.U,~] = qr(U,0);
-p.C = Aop(p.U);
-
+% f_scalar: The scalar version of the function f
 p.f_scalar = @(zx) exp(zx);
+
+%f_matrix: A function which returns the matrix vector product f(A)*b 
 p.f_matrix = @(Ax,bx) expm(full(Ax))*bx;
+
+num_systems = 5; %Number of differnt f(A)b applications we are testing
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
@@ -45,51 +36,57 @@ linewidth = 1;
 
 e1 = zeros(p.m,1);
 e1(1)=1;
-exact = p.f_matrix(A,b);
 
-%vectors to store results
-arnoldi_err = zeros(1,num_experiments);
-rfom2_err = zeros(1,num_experiments);
-rfom2_err_g = zeros(1,num_experiments);
-
-%Run Arnoldi to build basis V (of Krylov subspace) and Hessengerg matrix H
-fprintf("\n Computing Arnoldi approximation fa...\n");
-[V,H] = arnoldi(Aop, b, p);
-  
+%vectors to store relative residual for each problem
+arnoldi_err = zeros(1,num_systems);
+rfom2_err = zeros(1,num_systems);
 
 
-%Call each of the methods using a new number of quadrature points for each call
-for ix=1:num_experiments
-
-    p.num_quad = quad_points(ix);
+%Create sequence of problems and approximate f(A)b for each.
+for ix=1:num_systems
+    fprintf("\n\n\n ### PROBLEM %d ###\n\n\n", ix);
     
-    %Standard Arnoldi Approximation
+    %Create random vector b for f(A)*b application
+    b = rand(p.n,1);
+
+    exact = p.f_matrix(A,b);
+
+    %Run Arnoldi to build basis V (of Krylov subspace) and Hessengerg matrix H
+    [V,H] = arnoldi(Aop, b, p);
+  
+     % Compute Standard Arnoldi Approximation
+    fprintf("\n Computing Arnoldi approximation fa...\n");
     fa = norm(b)*V(:,1:p.m)*p.f_matrix(H(1:p.m,1:p.m),e1);
 
-    %r(FOM)2 v1
-    %Call all three implementations of rFOM2 for inverse square root.
-    fr = rFOM2_v1(p,b,V,H);
-    frg = rFOM2_v3(p,A,b,V,H);
-    
-    arnoldi_err(ix) = norm(fa - exact)/norm(exact);
-    rfom2_err(ix) = norm(fr - exact)/norm(exact);
-    rfom2_err_g(ix) = norm(frg - exact)/norm(exact);
+    %Compute r(FOM)^{2} approximation
+    fprintf("\n Computing r(FOM)^2 approximation fr...\n");
+    fr = rFOM2_v3(p,A,b,V,H);
 
+     %update U and c
+    fprintf("\n Updating U and C ... \n")
+
+    %Add newly computed approximate solution to recycling subspace.
+    U(:,ix) = fr;
+    p.k = size(U,2);
+    [p.U,~] = qr(U,0);
+    p.C = Aop(p.U);
+
+    arnoldi_err(ix) = norm(exact - fa)/norm(exact);
+    fprintf("\n Relative error (er) of arnoldi approximation %2f\n",arnoldi_err(ix));
+    rfom2_err(ix) = norm(exact - fr)/norm(exact);
+   fprintf("\n Relative error (er) of r(FOM)^2 approximation %2f\n",rfom2_err(ix));
+    
 end
 
 %Plot Results
 semilogy(arnoldi_err,'-v', 'LineWidth',1);
 hold on; 
-semilogy(rfom2_err,'-o', 'LineWidth',1);
-hold on;
-semilogy(rfom2_err_g,'-v', 'LineWidth',1);
+semilogy(rfom2_err,'-v', 'LineWidth',1);
 hold off;
-
-title('','interpreter','latex', 'FontSize', fontsize)
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('Relative Error', 'FontSize',fontsize);
 grid on;
-lgd = legend('Arnoldi error', 'r(FOM)$^{2}$ quad error','G','interpreter','latex');
+lgd = legend('Arnoldi Error', 'r(FOM)$^{2}$ Error','interpreter','latex');
 set(lgd,'FontSize',fontsize);
 
 

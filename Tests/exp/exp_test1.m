@@ -1,12 +1,14 @@
-% QCD_test1: Tests the hybrid implementation of r(FOM)2 as a recycling method for the special case
+% exp_test1: Tests r(FOM)2 as a recycling method for the special case
 % where the matrix A remains fixed and only the right hand sides change. 
 
-% The example used is the sign function of a non-Hermitian QCD matrix of size 3072 x 3072
-% Evaluation of the sign function is treated as an evaluation of the inverse square root function.
+% The example used is the exponential function of a network matrix of size
+% 8297 x 8297
+
+% Largest harmonic ritz vectors are used for recycling
 
 addpath(genpath('../'))
-order = "descend";
-%load QCD matrix
+
+%load network
 load("../../data/wiki-Vote.mat");
 A = -Problem.A;
 
@@ -29,6 +31,8 @@ p.f_scalar = @(zx) exp(zx);
 p.f_matrix = @(Ax,bx) expm(full(Ax))*bx;
 
 num_systems = 30; %Number of differnt f(A)b applications we are testing
+order = "descend"; %parameter to determine how we choose the harmonic ritz vectors
+
 
 %Paramters for fontsize and line width in plots
 fontsize = 13;
@@ -64,12 +68,6 @@ for ix=1:num_systems
 
      %update U and c
     fprintf("\n Updating U and C ... \n")
-
-    % U(:,ix) = fr;
-    % p.k = size(U,2);
-    % [p.U,~] = qr(U,0);
-    % p.C = Aop(p.U);
-
 
     %update U and c
     fprintf("\n Updating U and C ... \n")
