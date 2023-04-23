@@ -85,7 +85,7 @@ semilogy(arnoldi_err,'-v', 'LineWidth',1);
 hold on; 
 semilogy(rfom2_err,'-v', 'LineWidth',1);
 hold off;
-lgd = legend('Arnoldi Residual', 'r(FOM)$^{2}$ residual','interpreter','latex');
+lgd = legend('Arnoldi Error', 'r(FOM)$^{2}$ Error','interpreter','latex');
 xlabel('problem index','interpreter','latex', 'FontSize', fontsize);
 ylabel('', 'FontSize',fontsize);
 grid on;
