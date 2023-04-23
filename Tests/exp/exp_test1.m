@@ -76,7 +76,7 @@ for ix=1:num_systems
     U = V(:,1:p.m)*P;
 
     else
-    U = harm_ritz_aug_krylov(p,V,H,order);
+    U = compute_harmonic_ritz_vectors(p,V,H,order)
     end
 
     [p.U,~] = qr(U,0);
