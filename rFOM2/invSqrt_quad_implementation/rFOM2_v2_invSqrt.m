@@ -17,28 +17,28 @@
 %        on the vector b 
 
 %Output: fr: Approximation to f(A)b
-function fr = rFOM2_v2_invSqrt(p)
+function fr = rFOM2_v2_invSqrt(p,b,V,H)
 
 if (isempty(p.U))
 e1 = zeros(p.m,1);
 e1(1)=1;
 %Compute approximation
-fr = norm(p.b)*p.V(:,1:p.m)*p.f_matrix(p.H(1:p.m,1:p.m),e1);
+fr = norm(b)*V(:,1:p.m)*p.f_matrix(H(1:p.m,1:p.m),e1);
 else
 
 term1 = zeros(p.m+p.k,1);
 
  % Define constant factors appearing in quadrature integration
- Vhat = [p.U p.V(:,1:p.m)];
- What = [p.C p.V(:,1:p.m)];
+ Vhat = [p.U V(:,1:p.m)];
+ What = [p.C V(:,1:p.m)];
  G = zeros(p.m+p.k,p.m+p.k);
  G(1:p.k,1:p.k) = eye(p.k);
- G(p.k+1:p.m+p.k,p.k+1:p.m+p.k) = p.H(1:p.m,1:p.m);
+ G(p.k+1:p.m+p.k,p.k+1:p.m+p.k) = H(1:p.m,1:p.m);
  UmC = p.U-p.C;
  e = zeros(p.m,1);
  e(p.m)=1;
- hterm = p.H(p.m+1,p.m)*p.V(:,p.m+1)*e';
- VTb = Vhat'*p.b;
+ hterm = H(p.m+1,p.m)*V(:,p.m+1)*e';
+ VTb = Vhat'*b;
  VTW = Vhat'*What;
 
  R = @(zx) [zx*UmC  -hterm];
